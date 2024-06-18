@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #a0eaff, #d6a4e4);
+            height: 100vh;
+            margin: 0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .coin {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            margin-right: 20px;
+        }
+        .coin img {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+        }
+        .question-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+        }
+        .question {
+            background-color: #89CFF0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .option {
+            background-color: yellow;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        .option.correct {
+            background-color: green;
+        }
+        .option.incorrect {
+            background-color: red;
+        }
+        .navigation {
+            margin-top: 20px;
+        }
+        .nav-button {
+            background-color: #ddd;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 10px;
+            margin: 0 10px;
+        }
+        .quiz-completed {
+            display: none;
+            text-align: center;
+        }
+        .quiz-completed.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="coin">
+            <img src="Coin.png" alt="Coin Icon">
+            <span id="score">0</span>
+        </div>
+    </div>
+    <div class="question-container">
+        <div id="question" class="question"></div>
+        <div id="options" class="options"></div>
+        <div class="navigation">
+            <button class="nav-button" id="previous">Previous</button>
+            <button class="nav-button" id="next">Next</button>
+        </div>
+    </div>
+    <div id="quiz-completed" class="quiz-completed">
+        <h2>Quiz Completed</h2>
+        <p>Your score is: <span id="final-score"></span></p>
+        <button class="nav-button" id="restart">Restart</button>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+        "question": "What is the closest planet to the Sun?",
+        "options": ["Venus", "Earth", "Mercury", "Mars"],
+        "answer": "Mercury"
+    },
+    {
+        "question": "What galaxy is Earth located in?",
+        "options": ["Andromeda Galaxy", "Whirlpool Galaxy", "Milky Way Galaxy", "Sombrero Galaxy"],
+        "answer": "Milky Way Galaxy"
+    },
+    {
+        "question": "What is the name of the first artificial satellite sent into space?",
+        "options": ["Sputnik 1", "Explorer 1", "Voyager 1", "Hubble"],
+        "answer": "Sputnik 1"
+    },
+    {
+        "question": "Which planet is known as the Red Planet?",
+        "options": ["Mars", "Jupiter", "Saturn", "Neptune"],
+        "answer": "Mars"
+    },
+    {
+        "question": "What is the name of NASA’s most famous space telescope?",
+        "options": ["James Webb Space Telescope", "Hubble Space Telescope", "Chandra X-ray Observatory", "Spitzer Space Telescope"],
+        "answer": "Hubble Space Telescope"
+    },
+    {
+        "question": "Which planet has the most moons?",
+        "options": ["Mars", "Jupiter", "Saturn", "Uranus"],
+        "answer": "Saturn"
+    },
+    {
+        "question": "What is the main component of the Sun?",
+        "options": ["Oxygen", "Hydrogen", "Helium", "Carbon"],
+        "answer": "Hydrogen"
+    },
+    {
+        "question": "Which space probe was the first to fly by Pluto?",
+        "options": ["Voyager 1", "Voyager 2", "New Horizons", "Pioneer 10"],
+        "answer": "New Horizons"
+    },
+    {
+        "question": "What is the name of the first manned mission to land on the Moon?",
+        "options": ["Apollo 11", "Apollo 12", "Apollo 13", "Apollo 14"],
+        "answer": "Apollo 11"
+    },
+    {
+        "question": "Which planet is known for its rings?",
+        "options": ["Mars", "Jupiter", "Saturn", "Uranus"],
+        "answer": "Saturn"
+    },
+    {
+        "question": "What is the name of the galaxy closest to the Milky Way?",
+        "options": ["Andromeda Galaxy", "Triangulum Galaxy", "Whirlpool Galaxy", "Messier 87"],
+        "answer": "Andromeda Galaxy"
+    },
+    {
+        "question": "Who was the first person to walk on the Moon?",
+        "options": ["Buzz Aldrin", "Yuri Gagarin", "Neil Armstrong", "Michael Collins"],
+        "answer": "Neil Armstrong"
+    },
+    {
+        "question": "What is the name of the dwarf planet located in the asteroid belt?",
+        "options": ["Pluto", "Eris", "Ceres", "Haumea"],
+        "answer": "Ceres"
+    },
+    {
+        "question": "What kind of celestial object is Betelgeuse?",
+        "options": ["Planet", "Asteroid", "Star", "Galaxy"],
+        "answer": "Star"
+    },
+    {
+        "question": "What is the largest planet in our solar system?",
+        "options": ["Earth", "Jupiter", "Saturn", "Neptune"],
+        "answer": "Jupiter"
+    },
+    {
+        "question": "What phenomenon keeps the planets in orbit around the Sun?",
+        "options": ["Magnetism", "Gravity", "Nuclear force", "Solar winds"],
+        "answer": "Gravity"
+    },
+    {
+        "question": "What is the term for a star explosion?",
+        "options": ["Supernova", "Quasar", "Pulsar", "Neutron star"],
+        "answer": "Supernova"
+    },
+    {
+        "question": "Which planet is known as the Morning Star or Evening Star?",
+        "options": ["Mercury", "Venus", "Mars", "Jupiter"],
+        "answer": "Venus"
+    },
+    {
+        "question": "What are the small, rocky bodies that orbit the Sun primarily between Mars and Jupiter?",
+        "options": ["Comets", "Asteroids", "Meteoroids", "Moons"],
+        "answer": "Asteroids"
+    },
+    {
+        "question": "What is the name of the second man to walk on the Moon?",
+        "options": ["John Glenn", "Buzz Aldrin", "Alan Shepard", "Gus Grissom"],
+        "answer": "Buzz Aldrin"
+    },
+    {
+        "question": "What is the primary purpose of the International Space Station?",
+        "options": ["Military operations", "Space tourism", "Scientific research", "Mining resources"],
+        "answer": "Scientific research"
+    },
+    {
+        "question": "What is a black hole?",
+        "options": ["A region of space with no matter", "A dense star", "A region of space where gravity is so strong that nothing can escape", "A type of planet"],
+        "answer": "A region of space where gravity is so strong that nothing can escape"
+    },
+    {
+        "question": "What is the name of the largest moon of Saturn?",
+        "options": ["Titan", "Europa", "Ganymede", "Callisto"],
+        "answer": "Titan"
+    },
+    {
+        "question": "Which mission was the first to land a rover on Mars?",
+        "options": ["Pathfinder", "Curiosity", "Spirit", "Opportunity"],
+        "answer": "Pathfinder"
+    },
+    {
+        "question": "What is the term for a meteoroid that reaches Earth's surface?",
+        "options": ["Meteor", "Meteorite", "Asteroid", "Comet"],
+        "answer": "Meteorite"
+    },
+    {
+        "question": "What is the speed of light in a vacuum?",
+        "options": ["300,000 km/s", "150,000 km/s", "100,000 km/s", "50,000 km/s"],
+        "answer": "300,000 km/s"
+    },
+    {
+        "question": "Which planet has the longest day in our solar system?",
+        "options": ["Mercury", "Venus", "Mars", "Jupiter"],
+        "answer": "Venus"
+    },
+    {
+        "question": "What is the primary component of Saturn's rings?",
+        "options": ["Gas", "Dust", "Ice and rock", "Plasma"],
+        "answer": "Ice and rock"
+    },
+    {
+        "question": "What is the term for a system of millions or billions of stars, together with gas and dust, held together by gravitational attraction?",
+        "options": ["Star cluster", "Nebula", "Galaxy", "Constellation"],
+        "answer": "Galaxy"
+    },
+    {
+        "question": "Which planet is often referred to as Earth's twin?",
+        "options": ["Mars", "Venus", "Jupiter", "Mercury"],
+        "answer": "Venus"
+    },
+    {
+        "question": "Which space agency sent the first humans to the Moon?",
+        "options": ["NASA", "ESA", "Roscosmos", "ISRO"],
+        "answer": "NASA"
+    },
+    {
+        "question": "What is the name of the rover that landed on Mars in February 2021?",
+        "options": ["Spirit", "Opportunity", "Curiosity", "Perseverance"],
+        "answer": "Perseverance"
+    },
+    {
+        "question": "What is the term for the apparent shift in position of an object when viewed from different locations?",
+        "options": ["Refraction", "Parallax", "Aberration", "Doppler Effect"],
+        "answer": "Parallax"
+    },
+    {
+        "question": "Which planet is known for having a Great Red Spot?",
+        "options": ["Earth", "Mars", "Jupiter", "Saturn"],
+        "answer": "Jupiter"
+    },
+    {
+        "question": "What type of galaxy is the Milky Way?",
+        "options": ["Elliptical", "Irregular", "Spiral", "Lenticular"],
+        "answer": "Spiral"
+    },
+    {
+        "question": "Who was the first woman to travel into space?",
+        "options": ["Sally Ride", "Valentina Tereshkova", "Mae Jemison", "Peggy Whitson"],
+        "answer": "Valentina Tereshkova"
+    },
+    {
+        "question": "What is the name of the boundary around a black hole beyond which nothing can escape?",
+        "options": ["Event Horizon", "Singularity", "Schwarzschild Radius", "Photon Sphere"],
+        "answer": "Event Horizon"
+    },
+    {
+        "question": "Which planet is known for its extensive and complex ring system?",
+        "options": ["Jupiter", "Saturn", "Uranus", "Neptune"],
+        "answer": "Saturn"
+    },
+    {
+        "question": "Which celestial event occurs when the Moon passes directly between the Earth and the Sun?",
+        "options": ["Lunar Eclipse", "Solar Eclipse", "Transit", "Occultation"],
+        "answer": "Solar Eclipse"
+    },
+    {
+        "question": "Which space probe was the first to reach interstellar space?",
+        "options": ["Pioneer 10", "Voyager 1", "Voyager 2", "New Horizons"],
+        "answer": "Voyager 1"
+    },
+    {
+        "question": "What is the smallest planet in our solar system?",
+        "options": ["Mercury", "Venus", "Earth", "Mars"],
+        "answer": "Mercury"
+    },
+    {
+        "question": "What is the name of the effect that describes the change in frequency or wavelength of a wave in relation to an observer moving relative to the source of the wave?",
+        "options": ["Doppler Effect", "Parallax", "Redshift", "Blueshift"],
+        "answer": "Doppler Effect"
+    },
+    {
+        "question": "What is the most abundant gas in the Earth's atmosphere?",
+        "options": ["Oxygen", "Carbon Dioxide", "Nitrogen", "Argon"],
+        "answer": "Nitrogen"
+    },
+    {
+        "question": "What is the term for the dark central part of a sunspot?",
+        "options": ["Penumbra", "Umbra", "Corona", "Photosphere"],
+        "answer": "Umbra"
+    },
+    {
+        "question": "Which planet has the tallest volcano in our solar system?",
+        "options": ["Earth", "Mars", "Jupiter", "Venus"],
+        "answer": "Mars"
+    },
+    {
+        "question": "What is the name of the closest star to the Sun?",
+        "options": ["Alpha Centauri", "Proxima Centauri", "Barnard's Star", "Sirius"],
+        "answer": "Proxima Centauri"
+    },
+    {
+        "question": "Which moon is the largest in the solar system?",
+        "options": ["Titan", "Europa", "Ganymede", "Callisto"],
+        "answer": "Ganymede"
+    },
+    {
+        "question": "What is the name of the effect where a massive object causes a distortion of space-time, which bends the path of light?",
+        "options": ["Redshift", "Gravitational Lensing", "Time Dilation", "Photon Sphere"],
+        "answer": "Gravitational Lensing"
+    },
+    {
+        "question": "What is the main purpose of the Hubble Space Telescope?",
+        "options": ["Exploring deep space", "Studying Mars", "Observing the Moon", "Monitoring space weather"],
+        "answer": "Exploring deep space"
+    },
+        {
+        "question": "What is dark energy?",
+        "options": ["A type of matter", "A form of radiation", "An unknown form of energy causing the accelerated expansion of the universe", "A type of black hole"],
+        "answer": "An unknown form of energy causing the accelerated expansion of the universe"
+    },
+    {
+        "question": "Who first proposed the existence of dark matter?",
+        "options": ["Albert Einstein", "Vera Rubin", "Fritz Zwicky", "Edwin Hubble"],
+        "answer": "Fritz Zwicky"
+    },
+    {
+        "question": "What percentage of the universe is composed of dark energy?",
+        "options": ["5%", "25%", "50%", "70%"],
+        "answer": "70%"
+    },
+    {
+        "question": "What is the role of the Chandra X-ray Observatory?",
+        "options": ["Studying infrared radiation", "Observing X-rays from high-energy regions of the universe", "Exploring microwave background radiation", "Monitoring solar activity"],
+        "answer": "Observing X-rays from high-energy regions of the universe"
+    },
+    {
+        "question": "What phenomenon provides evidence for dark matter in galaxies?",
+        "options": ["Cosmic microwave background radiation", "Gravitational lensing", "Solar flares", "Pulsar emissions"],
+        "answer": "Gravitational lensing"
+    },
+    {
+        "question": "What space observatory was launched to study the cosmic microwave background?",
+        "options": ["Hubble Space Telescope", "Chandra X-ray Observatory", "Planck Space Observatory", "Spitzer Space Telescope"],
+        "answer": "Planck Space Observatory"
+    },
+    {
+        "question": "Which observatory is designed to detect gravitational waves?",
+        "options": ["LIGO", "Hubble Space Telescope", "James Webb Space Telescope", "Fermi Gamma-ray Space Telescope"],
+        "answer": "LIGO"
+    },
+    {
+        "question": "What is the Large Synoptic Survey Telescope (LSST) designed to study?",
+        "options": ["Exoplanets", "Dark energy and dark matter", "Solar flares", "Neutron stars"],
+        "answer": "Dark energy and dark matter"
+    },
+    {
+        "question": "What is the main goal of the Dark Energy Survey (DES)?",
+        "options": ["To map the Milky Way", "To detect black holes", "To understand the nature of dark energy", "To find new exoplanets"],
+        "answer": "To understand the nature of dark energy"
+    },
+    {
+        "question": "Who discovered that the universe is expanding at an accelerating rate?",
+        "options": ["Albert Einstein", "Edwin Hubble", "Saul Perlmutter, Brian Schmidt, and Adam Riess", "Vera Rubin"],
+        "answer": "Saul Perlmutter, Brian Schmidt, and Adam Riess"
+    },
+    {
+        "question": "What does the term 'baryonic matter' refer to?",
+        "options": ["Dark matter", "Ordinary matter composed of protons, neutrons, and electrons", "Antimatter", "Dark energy"],
+        "answer": "Ordinary matter composed of protons, neutrons, and electrons"
+    },
+    {
+        "question": "What is the primary goal of the Gaia mission?",
+        "options": ["To map the stars in the Milky Way with unprecedented precision", "To detect gravitational waves", "To study dark matter", "To observe black holes"],
+        "answer": "To map the stars in the Milky Way with unprecedented precision"
+    },
+    {
+        "question": "Which observatory is known for its study of high-energy cosmic rays?",
+        "options": ["Hubble Space Telescope", "Fermi Gamma-ray Space Telescope", "James Webb Space Telescope", "Spitzer Space Telescope"],
+        "answer": "Fermi Gamma-ray Space Telescope"
+    },
+    {
+        "question": "What type of matter makes up approximately 27% of the universe?",
+        "options": ["Baryonic matter", "Dark matter", "Antimatter", "Dark energy"],
+        "answer": "Dark matter"
+    },
+    {
+        "question": "What is the main purpose of the WISE (Wide-field Infrared Survey Explorer) mission?",
+        "options": ["To study black holes", "To map the entire sky in infrared light", "To observe the Sun", "To detect gamma rays"],
+        "answer": "To map the entire sky in infrared light"
+    },
+    {
+        "question": "What is the primary function of the ALMA observatory?",
+        "options": ["Studying radio waves", "Observing X-rays", "Detecting gravitational waves", "Exploring the early universe"],
+        "answer": "Studying radio waves"
+    },
+    {
+        "question": "Which space telescope was designed to observe gamma-ray bursts?",
+        "options": ["Hubble Space Telescope", "Fermi Gamma-ray Space Telescope", "James Webb Space Telescope", "Kepler Space Telescope"],
+        "answer": "Fermi Gamma-ray Space Telescope"
+    },
+    {
+        "question": "What is the ESA's Euclid mission focused on?",
+        "options": ["Mapping the dark universe", "Studying the Sun", "Observing exoplanets", "Monitoring space weather"],
+        "answer": "Mapping the dark universe"
+    },
+    {
+        "question": "What is the Bullet Cluster used as evidence for?",
+        "options": ["Dark matter", "Dark energy", "Cosmic inflation", "Gravitational waves"],
+        "answer": "Dark matter"
+    },
+    {
+        "question": "What is the main goal of the Square Kilometre Array (SKA) project?",
+        "options": ["To study exoplanets", "To map the cosmic web", "To explore dark energy and dark matter", "To detect asteroids"],
+        "answer": "To explore dark energy and dark matter"
+    },
+    {
+        "question": "What are WIMPs in the context of dark matter?",
+        "options": ["Weakly Interacting Massive Particles", "Widely Identified Molecular Particles", "Weakly Identified Matter Particles", "Widely Interacting Molecular Particles"],
+        "answer": "Weakly Interacting Massive Particles"
+    },
+    {
+        "question": "Which space telescope was the first to provide a deep field image of the universe?",
+        "options": ["James Webb Space Telescope", "Hubble Space Telescope", "Spitzer Space Telescope", "Chandra X-ray Observatory"],
+        "answer": "Hubble Space Telescope"
+    },
+    {
+        "question": "What is MACHO in the context of dark matter?",
+        "options": ["Massive Compact Halo Object", "Massive Cosmic Halo Object", "Molecular Astrophysical Compact Halo Object", "Molecular Cosmic Halo Object"],
+        "answer": "Massive Compact Halo Object"
+    },
+    {
+        "question": "Which observatory is known for its survey of the infrared universe?",
+        "options": ["Chandra X-ray Observatory", "Spitzer Space Telescope", "Hubble Space Telescope", "Fermi Gamma-ray Space Telescope"],
+        "answer": "Spitzer Space Telescope"
+    },
+    {
+        "question": "What is the main objective of the Nancy Grace Roman Space Telescope (formerly WFIRST)?",
+        "options": ["To study dark energy", "To observe exoplanets", "To monitor the Sun", "To detect gravitational waves"],
+        "answer": "To study dark energy"
+    },
+    {
+        "question": "What does the term 'baryon acoustic oscillations' refer to?",
+        "options": ["Oscillations in the cosmic microwave background", "Density fluctuations in the early universe", "Gravitational waves", "Variations in star brightness"],
+        "answer": "Density fluctuations in the early universe"
+    },
+    {
+        "question": "What is the primary purpose of the Euclid mission by ESA?",
+        "options": ["Studying dark matter and dark energy", "Observing exoplanets", "Monitoring solar flares", "Mapping the Milky Way"],
+        "answer": "Studying dark matter and dark energy"
+    },
+    {
+        "question": "Which theory suggests that dark energy is a property of space itself?",
+        "options": ["Quantum Theory", "General Relativity", "Cosmological Constant", "String Theory"],
+        "answer": "Cosmological Constant"
+    },
+    {
+        "question": "What is the term for the large-scale structure of the universe, composed of galaxies and dark matter?",
+        "options": ["Cosmic web", "Milky Way", "Local Group", "Solar system"],
+        "answer": "Cosmic web"
+    },
+    {
+        "question": "Which space observatory is specifically designed for infrared astronomy?",
+        "options": ["Hubble Space Telescope", "James Webb Space Telescope", "Chandra X-ray Observatory", "Fermi Gamma-ray Space Telescope"],
+        "answer": "James Webb Space Telescope"
+    },
+    {
+        "question": "What is the primary focus of the Fermi Gamma-ray Space Telescope?",
+        "options": ["Studying gamma-ray bursts", "Observing dark energy", "Mapping exoplanets", "Detecting gravitational waves"],
+        "answer": "Studying gamma-ray bursts"
+    },
+    {
+        "question": "Who formulated the theory of general relativity?",
+        "options": ["Isaac Newton", "Albert Einstein", "Niels Bohr", "Galileo Galilei"],
+        "answer": "Albert Einstein"
+    },
+    {
+        "question": "What is a black hole?",
+        "options": ["A star", "A planet", "A region of space where gravity is so strong that nothing can escape", "A galaxy"],
+        "answer": "A region of space where gravity is so strong that nothing can escape"
+    },
+    {
+        "question": "Who was the first person to propose the heliocentric model of the solar system?",
+        "options": ["Ptolemy", "Copernicus", "Galileo", "Kepler"],
+        "answer": "Copernicus"
+    },
+    {
+        "question": "What does the event horizon of a black hole represent?",
+        "options": ["The center", "The outer shell", "The point beyond which nothing can escape", "The core"],
+        "answer": "The point beyond which nothing can escape"
+    },
+    {
+        "question": "Who discovered the law of universal gravitation?",
+        "options": ["Albert Einstein", "Galileo Galilei", "Isaac Newton", "Johannes Kepler"],
+        "answer": "Isaac Newton"
+    },
+    {
+        "question": "What is the name of the effect that describes the change in frequency or wavelength of light from a star moving towards or away from us?",
+        "options": ["Doppler Effect", "Parallax", "Redshift", "Blueshift"],
+        "answer": "Doppler Effect"
+    },
+    {
+        "question": "Who is known as the father of modern observational astronomy?",
+        "options": ["Nicolaus Copernicus", "Galileo Galilei", "Johannes Kepler", "Tycho Brahe"],
+        "answer": "Galileo Galilei"
+    },
+    {
+        "question": "What is the cosmic microwave background radiation?",
+        "options": ["Radiation from stars", "Heat from the Sun", "Thermal radiation left over from the Big Bang", "Light from distant galaxies"],
+        "answer": "Thermal radiation left over from the Big Bang"
+    },
+    {
+        "question": "Who was the first woman to win a Nobel Prize in Physics?",
+        "options": ["Rosalind Franklin", "Lise Meitner", "Chien-Shiung Wu", "Marie Curie"],
+        "answer": "Marie Curie"
+    },
+    {
+        "question": "What theory explains the formation and expansion of the universe?",
+        "options": ["Steady State Theory", "String Theory", "Big Bang Theory", "Quantum Theory"],
+        "answer": "Big Bang Theory"
+    },
+    {
+        "question": "Who discovered the first exoplanet?",
+        "options": ["Michel Mayor and Didier Queloz", "Carl Sagan", "Edwin Hubble", "Stephen Hawking"],
+        "answer": "Michel Mayor and Didier Queloz"
+    },
+    {
+        "question": "What is the primary purpose of the James Webb Space Telescope?",
+        "options": ["Studying the Moon", "Observing exoplanets", "Exploring deep space", "Monitoring space weather"],
+        "answer": "Exploring deep space"
+    },
+    {
+        "question": "Who first proposed the idea of a black hole?",
+        "options": ["Albert Einstein", "Stephen Hawking", "Karl Schwarzschild", "Isaac Newton"],
+        "answer": "Karl Schwarzschild"
+    },
+    {
+        "question": "What is Hawking radiation?",
+        "options": ["Radiation from stars", "Cosmic microwave background radiation", "Radiation predicted to be emitted by black holes", "Radiation from quasars"],
+        "answer": "Radiation predicted to be emitted by black holes"
+    },
+    {
+        "question": "Which physicist is known for his work on black holes and his popular science books?",
+        "options": ["Carl Sagan", "Richard Feynman", "Stephen Hawking", "Brian Cox"],
+        "answer": "Stephen Hawking"
+    },
+    {
+        "question": "What does E=mc² represent?",
+        "options": ["Einstein's equation for energy-mass equivalence", "Newton's second law", "Planck's constant", "Hubble's Law"],
+        "answer": "Einstein's equation for energy-mass equivalence"
+    },
+    {
+        "question": "Who discovered the expansion of the universe?",
+        "options": ["Albert Einstein", "Edwin Hubble", "Carl Sagan", "Niels Bohr"],
+        "answer": "Edwin Hubble"
+    },
+    {
+        "question": "What is the name of the first human-made object to leave the solar system?",
+        "options": ["Voyager 1", "Pioneer 10", "New Horizons", "Cassini"],
+        "answer": "Voyager 1"
+    },
+    {
+        "question": "Who was the first American woman in space?",
+        "options": ["Valentina Tereshkova", "Sally Ride", "Mae Jemison", "Peggy Whitson"],
+        "answer": "Sally Ride"
+    },
+    {
+        "question": "What is the observable universe?",
+        "options": ["The entire universe", "The part of the universe that can be seen from Earth", "The solar system", "The Milky Way galaxy"],
+        "answer": "The part of the universe that can be seen from Earth"
+    },
+    {
+        "question": "Who discovered the first pulsar?",
+        "options": ["Jocelyn Bell Burnell", "Edwin Hubble", "Stephen Hawking", "Carl Sagan"],
+        "answer": "Jocelyn Bell Burnell"
+    },
+    {
+        "question": "What is dark matter?",
+        "options": ["Matter that emits light", "Matter that absorbs light", "A type of matter that does not emit or interact with electromagnetic radiation", "A type of antimatter"],
+        "answer": "A type of matter that does not emit or interact with electromagnetic radiation"
+    },
+    {
+        "question": "What is the name of the telescope that discovered most of the exoplanets we know today?",
+        "options": ["Hubble Space Telescope", "Spitzer Space Telescope", "James Webb Space Telescope", "Kepler Space Telescope"],
+        "answer": "Kepler Space Telescope"
+    },
+    {
+        "question": "What is a quasar?",
+        "options": ["A type of star", "A region in space with no matter", "An extremely bright and distant active galactic nucleus", "A type of black hole"],
+        "answer": "An extremely bright and distant active galactic nucleus"
+    },
+    {
+        "question": "What is the main component of dark energy?",
+        "options": ["Protons", "Neutrons", "Electrons", "It is still unknown"],
+        "answer": "It is still unknown"
+    },
+    {
+        "question": "Who first predicted the existence of antimatter?",
+        "options": ["Albert Einstein", "Paul Dirac", "Niels Bohr", "Erwin Schrödinger"],
+        "answer": "Paul Dirac"
+    },
+    {
+        "question": "What is the name of the supermassive black hole at the center of the Milky Way galaxy?",
+        "options": ["Andromeda", "Sagittarius A*", "Cygnus X-1", "M87"],
+        "answer": "Sagittarius A*"
+    },
+    {
+        "question": "What is gravitational lensing?",
+        "options": ["The bending of light due to a massive object", "The effect of black holes on light", "The distortion of space-time", "The expansion of the universe"],
+        "answer": "The bending of light due to a massive object"
+    },
+    {
+        "question": "What is a wormhole?",
+        "options": ["A type of black hole", "A theoretical passage through space-time", "A type of neutron star", "A galaxy"],
+        "answer": "A theoretical passage through space-time"
+    },
+    {
+        "question": "What is the term for the study of the universe and its origins?",
+        "options": ["Astronomy", "Astrophysics", "Cosmology", "Quantum mechanics"],
+        "answer": "Cosmology"
+    },
+    {
+        "question": "Who was the first person to suggest that the Milky Way is a galaxy made up of many stars?",
+        "options": ["Galileo Galilei", "Isaac Newton", "Immanuel Kant", "Harlow Shapley"],
+        "answer": "Immanuel Kant"
+    },
+    {
+        "question": "What is the largest known structure in the universe?",
+        "options": ["Galaxy cluster", "Supercluster", "Great Wall", "Laniakea Supercluster"],
+        "answer": "Laniakea Supercluster"
+    },
+    {
+        "question": "What is the cosmic web?",
+        "options": ["A network of galaxies and dark matter", "A type of star cluster", "The space between galaxies", "A type of black hole"],
+        "answer": "A network of galaxies and dark matter"
+    },
+    {
+        "question": "Who coined the term 'Big Bang'?",
+        "options": ["Albert Einstein", "Edwin Hubble", "Fred Hoyle", "George Gamow"],
+        "answer": "Fred Hoyle"
+    },
+    {
+        "question": "What is the approximate age of the universe?",
+        "options": ["4.6 billion years", "10 billion years", "13.8 billion years", "20 billion years"],
+        "answer": "13.8 billion years"
+    },
+    {
+        "question": "Who was the first person to calculate the speed of light?",
+        "options": ["Galileo Galilei", "Ole Rømer", "Isaac Newton", "Albert Einstein"],
+        "answer": "Ole Rømer"
+    },
+    {
+        "question": "What is the name of the first American astronaut to orbit the Earth?",
+        "options": ["Neil Armstrong", "Buzz Aldrin", "John Glenn", "Alan Shepard"],
+        "answer": "John Glenn"
+    },
+    {
+        "question": "What is an exoplanet?",
+        "options": ["A planet in our solar system", "A planet that orbits a star outside our solar system", "A dwarf planet", "A rogue planet"],
+        "answer": "A planet that orbits a star outside our solar system"
+    },
+    {
+        "question": "Who developed the laws of planetary motion?",
+        "options": ["Galileo Galilei", "Isaac Newton", "Johannes Kepler", "Tycho Brahe"],
+        "answer": "Johannes Kepler"
+    },
+    {
+        "question": "What is a neutron star?",
+        "options": ["A type of black hole", "A dead star", "The remnants of a supernova", "A type of galaxy"],
+        "answer": "The remnants of a supernova"
+    },
+    {
+        "question": "What is the Hubble Constant?",
+        "options": ["The speed of light", "The expansion rate of the universe", "The gravitational constant", "The density of dark matter"],
+        "answer": "The expansion rate of the universe"
+    },
+    {
+        "question": "Who is known for the theory of cosmic inflation?",
+        "options": ["Albert Einstein", "Alan Guth", "Stephen Hawking", "Carl Sagan"],
+        "answer": "Alan Guth"
+    },
+    {
+        "question": "What is a supernova?",
+        "options": ["A type of galaxy", "An exploding star", "A neutron star", "A black hole"],
+        "answer": "An exploding star"
+    },
+    {
+        "question": "Who was the first person to suggest that black holes could emit radiation?",
+        "options": ["Albert Einstein", "Isaac Newton", "Stephen Hawking", "Karl Schwarzschild"],
+        "answer": "Stephen Hawking"
+    },
+    {
+        "question": "What is the name of the telescope that replaced the Hubble Space Telescope?",
+        "options": ["James Webb Space Telescope", "Spitzer Space Telescope", "Kepler Space Telescope", "Chandra X-ray Observatory"],
+        "answer": "James Webb Space Telescope"
+    },
+    {
+        "question": "What is the Fermi Paradox?",
+        "options": ["The question of why we haven't found alien life yet", "The theory of relativity", "The uncertainty principle", "The expansion of the universe"],
+        "answer": "The question of why we haven't found alien life yet"
+    },
+    {
+        "question": "Who was the first person to walk in space?",
+        "options": ["Yuri Gagarin", "Alan Shepard", "Alexei Leonov", "John Glenn"],
+        "answer": "Alexei Leonov"
+    },
+    {
+        "question": "What is the study of the origin, evolution, and eventual fate of the universe called?",
+        "options": ["Astrophysics", "Astronomy", "Cosmology", "Quantum Mechanics"],
+        "answer": "Cosmology"
+    },
+    {
+        "question": "What is the primary role of computers on spacecraft?",
+        "options": ["Entertainment for astronauts", "Scientific calculations", "Navigation and control systems", "Communication with Earth"],
+        "answer": "Navigation and control systems"
+    },
+    {
+        "question": "Which spacecraft was the first to land humans on the Moon?",
+        "options": ["Apollo 11", "Apollo 12", "Apollo 13", "Apollo 14"],
+        "answer": "Apollo 11"
+    },
+    {
+        "question": "What is the name of the reusable spacecraft developed by SpaceX?",
+        "options": ["Orion", "Starliner", "Dragon", "New Shepard"],
+        "answer": "Dragon"
+    },
+    {
+        "question": "What is the function of the Deep Space Network (DSN)?",
+        "options": ["Monitoring solar activity", "Tracking asteroids", "Communicating with spacecraft", "Observing black holes"],
+        "answer": "Communicating with spacecraft"
+    },
+    {
+        "question": "What space phenomenon is characterized by a sudden release of energy from the Sun's surface?",
+        "options": ["Solar flare", "Supernova", "Black hole", "Pulsar"],
+        "answer": "Solar flare"
+    },
+    {
+        "question": "What is the primary objective of the Voyager missions?",
+        "options": ["Exploring Mars", "Studying the outer planets and interstellar space", "Observing the Sun", "Detecting dark matter"],
+        "answer": "Studying the outer planets and interstellar space"
+    },
+    {
+        "question": "What is a 'wormhole' in theoretical physics?",
+        "options": ["A black hole", "A tunnel-like structure connecting different points in spacetime", "A type of neutron star", "A solar phenomenon"],
+        "answer": "A tunnel-like structure connecting different points in spacetime"
+    },
+    {
+        "question": "What does the acronym ISS stand for?",
+        "options": ["International Solar System", "International Space Station", "Interstellar Space Station", "Integrated Satellite System"],
+        "answer": "International Space Station"
+    },
+    {
+        "question": "What is the primary purpose of the Parker Solar Probe?",
+        "options": ["To study the outer planets", "To explore dark matter", "To observe the Sun's corona", "To map the Milky Way"],
+        "answer": "To observe the Sun's corona"
+    },
+    {
+        "question": "What is the phenomenon where charged particles from the Sun interact with Earth's magnetic field?",
+        "options": ["Aurora", "Solar flare", "Supernova", "Black hole"],
+        "answer": "Aurora"
+    },
+    {
+        "question": "Which spacecraft was the first to fly by all four outer planets (Jupiter, Saturn, Uranus, and Neptune)?",
+        "options": ["Voyager 1", "Voyager 2", "Pioneer 10", "New Horizons"],
+        "answer": "Voyager 2"
+    },
+    {
+        "question": "What is a neutron star?",
+        "options": ["A type of black hole", "The remnant of a supernova explosion", "A young, newly formed star", "A type of comet"],
+        "answer": "The remnant of a supernova explosion"
+    },
+    {
+        "question": "Which mission was the first to land a rover on Mars?",
+        "options": ["Pathfinder", "Curiosity", "Spirit", "Opportunity"],
+        "answer": "Pathfinder"
+    },
+    {
+        "question": "What is a quasar?",
+        "options": ["A young star", "A black hole", "A very luminous and active galactic nucleus", "A type of comet"],
+        "answer": "A very luminous and active galactic nucleus"
+    },
+    {
+        "question": "What is the phenomenon where light from distant stars is bent around a massive object?",
+        "options": ["Redshift", "Gravitational lensing", "Parallax", "Doppler Effect"],
+        "answer": "Gravitational lensing"
+    },
+    {
+        "question": "What is the name of the first artificial satellite sent into space?",
+        "options": ["Sputnik 1", "Explorer 1", "Voyager 1", "Hubble"],
+        "answer": "Sputnik 1"
+    },
+    {
+        "question": "What is a black hole?",
+        "options": ["A region of space with no matter", "A dense star", "A region of space where gravity is so strong that nothing can escape", "A type of planet"],
+        "answer": "A region of space where gravity is so strong that nothing can escape"
+    },
+    {
+        "question": "What is the primary function of the James Webb Space Telescope?",
+        "options": ["Observing exoplanets", "Studying the early universe", "Monitoring the Sun", "Tracking asteroids"],
+        "answer": "Studying the early universe"
+    },
+    {
+        "question": "What is the Kuiper Belt?",
+        "options": ["A region of space beyond Neptune containing small icy bodies", "A type of asteroid", "A ring around Saturn", "A region within the asteroid belt"],
+        "answer": "A region of space beyond Neptune containing small icy bodies"
+    },
+    {
+        "question": "What is the phenomenon where the apparent position of a star changes due to the Earth's orbit?",
+        "options": ["Doppler Effect", "Parallax", "Redshift", "Blueshift"],
+        "answer": "Parallax"
+    },
+    {
+        "question": "What is the name of NASA's Mars helicopter?",
+        "options": ["Ingenuity", "Spirit", "Curiosity", "Opportunity"],
+        "answer": "Ingenuity"
+    },
+    {
+        "question": "What are the Van Allen radiation belts?",
+        "options": ["Regions of trapped charged particles around Earth", "Belts of asteroids", "Rings around Saturn", "Zones of intense solar radiation"],
+        "answer": "Regions of trapped charged particles around Earth"
+    },
+    {
+        "question": "What is the main purpose of the Hubble Space Telescope?",
+        "options": ["Exploring deep space", "Studying Mars", "Observing the Moon", "Monitoring space weather"],
+        "answer": "Exploring deep space"
+    },
+    {
+        "question": "What is the phenomenon called when a star suddenly increases in brightness due to an explosion?",
+        "options": ["Supernova", "Quasar", "Pulsar", "Nebula"],
+        "answer": "Supernova"
+    },
+    {
+        "question": "What is the main purpose of the International Space Station?",
+        "options": ["Military operations", "Space tourism", "Scientific research", "Mining resources"],
+        "answer": "Scientific research"
+    },
+    {
+        "question": "What is the purpose of the OSIRIS-REx mission?",
+        "options": ["To study the Sun", "To return a sample from an asteroid", "To explore Mars", "To observe the Moon"],
+        "answer": "To return a sample from an asteroid"
+    },
+    {
+        "question": "What is the heliosphere?",
+        "options": ["The region influenced by the Sun's magnetic field", "A type of star", "The boundary of the solar system", "The surface of the Sun"],
+        "answer": "The region influenced by the Sun's magnetic field"
+    },
+    {
+        "question": "What is a magnetar?",
+        "options": ["A type of neutron star with an extremely powerful magnetic field", "A young star", "A type of comet", "A black hole"],
+        "answer": "A type of neutron star with an extremely powerful magnetic field"
+    },
+    {
+        "question": "What is the purpose of the Juno mission?",
+        "options": ["To study Jupiter", "To explore the asteroid belt", "To map the Milky Way", "To observe Saturn's rings"],
+        "answer": "To study Jupiter"
+    },
+    {
+        "question": "What is the term for the boundary around a black hole beyond which nothing can escape?",
+        "options": ["Event Horizon", "Singularity", "Schwarzschild Radius", "Photon Sphere"],
+        "answer": "Event Horizon"
+    },
+    {
+        "question": "What is the name of the European Space Agency's mission to study the Sun?",
+        "options": ["Solar Orbiter", "New Horizons", "Cassini", "Galileo"],
+        "answer": "Solar Orbiter"
+    },
+    {
+        "question": "What is the main objective of the Lunar Gateway?",
+        "options": ["To serve as a communication relay", "To conduct scientific research on Mars", "To be a space station orbiting the Moon", "To monitor Earth's atmosphere"],
+        "answer": "To be a space station orbiting the Moon"
+    },
+    {
+        "question": "What is the term for a small body from space that enters the Earth's atmosphere and reaches the surface?",
+        "options": ["Meteor", "Meteorite", "Asteroid", "Comet"],
+        "answer": "Meteorite"
+    },
+    {
+        "question": "What is the primary goal of the Kepler Space Telescope?",
+        "options": ["To study dark matter", "To find Earth-like planets", "To observe the Sun", "To detect gravitational waves"],
+        "answer": "To find Earth-like planets"
+    },
+    {
+        "question": "What is the purpose of the Artemis program?",
+        "options": ["To study the outer planets", "To return humans to the Moon", "To observe black holes", "To map the cosmic microwave background"],
+        "answer": "To return humans to the Moon"
+    },
+    {
+        "question": "What is the phenomenon where light from distant galaxies is redshifted due to the expansion of the universe?",
+        "options": ["Gravitational lensing", "Doppler Effect", "Cosmic redshift", "Parallax"],
+        "answer": "Cosmic redshift"
+    },
+    {
+        "question": "Which spacecraft was the first to visit Pluto?",
+        "options": ["Voyager 1", "New Horizons", "Pioneer 10", "Galileo"],
+        "answer": "New Horizons"
+    },
+    {
+        "question": "What is a pulsar?",
+        "options": ["A type of black hole", "A rapidly rotating neutron star emitting beams of radiation", "A young star", "A supernova remnant"],
+        "answer": "A rapidly rotating neutron star emitting beams of radiation"
+    },
+    {
+        "question": "What is the James Webb Space Telescope's primary target?",
+        "options": ["Exoplanets", "Early universe and star formation", "Solar flares", "Galactic core"],
+        "answer": "Early universe and star formation"
+    },
+    {
+        "question": "What is the role of the Curiosity rover on Mars?",
+        "options": ["To observe the atmosphere", "To study the surface and climate of Mars", "To monitor solar activity", "To search for water on Mars"],
+        "answer": "To study the surface and climate of Mars"
+    },
+    {
+        "question": "What is the term for the leftover core of a massive star that has exploded in a supernova?",
+        "options": ["Black hole", "White dwarf", "Neutron star", "Red giant"],
+        "answer": "Neutron star"
+    },
+    {
+        "question": "What is the goal of the Event Horizon Telescope?",
+        "options": ["To study black holes", "To map exoplanets", "To observe dark matter", "To detect gravitational waves"],
+        "answer": "To study black holes"
+    }
+ 	    
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const scoreElement = document.getElementById('score');
+        const previousButton = document.getElementById('previous');
+        const nextButton = document.getElementById('next');
+        const quizCompletedElement = document.getElementById('quiz-completed');
+        const finalScoreElement = document.getElementById('final-score');
+        const restartButton = document.getElementById('restart');
+
+        function loadQuestion() {
+            const currentQuestion = quizData[currentQuestionIndex];
+            questionElement.textContent = currentQuestion.question;
+            optionsElement.innerHTML = '';
+            currentQuestion.options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.textContent = option;
+                optionElement.className = 'option';
+                optionElement.onclick = () => checkAnswer(optionElement, option);
+                optionsElement.appendChild(optionElement);
+            });
+            saveGameState();
+        }
+
+        function checkAnswer(optionElement, option) {
+            const currentQuestion = quizData[currentQuestionIndex];
+            if (option === currentQuestion.answer) {
+                optionElement.classList.add('correct');
+                score++;
+            } else {
+                optionElement.classList.add('incorrect');
+            }
+            scoreElement.textContent = score;
+            setTimeout(() => {
+                optionElement.classList.remove('correct', 'incorrect');
+                nextQuestion();
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showQuizCompleted();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function showQuizCompleted() {
+            finalScoreElement.textContent = score;
+            quizCompletedElement.classList.add('active');
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            scoreElement.textContent = score;
+            quizCompletedElement.classList.remove('active');
+            loadQuestion();
+        }
+
+
+
+        previousButton.addEventListener('click', previousQuestion);
+        nextButton.addEventListener('click', nextQuestion);
+        restartButton.addEventListener('click', restartQuiz);
+
+        loadGameState();
+        loadQuestion();
+    </script>
+</body>
+</html>
